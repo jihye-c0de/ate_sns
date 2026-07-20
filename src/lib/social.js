@@ -21,7 +21,7 @@ export async function uploadAvatarImage(userId, file) {
   const fileName = `${userId}/${Date.now()}.${extension}`;
   const { error: uploadError } = await supabase.storage
     .from('avatars')
-    .upload(fileName, file, { contentType: file.type, upsert: true });
+    .upload(fileName, file, { contentType: file.type });
   if (uploadError) throw uploadError;
   const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
   return data.publicUrl;
