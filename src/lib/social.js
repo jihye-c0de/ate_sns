@@ -79,7 +79,9 @@ export async function unsavePost(userId, postId) {
 export async function fetchSavedPosts(userId) {
   const { data, error } = await supabase
     .from('ate_saved_posts')
-    .select('created_at, ate_posts(*, ate_users(username, display_name, avatar_url))')
+    .select(
+      'created_at, ate_posts!ate_saved_posts_post_id_fkey(*, ate_users!ate_posts_user_id_fkey(username, display_name, avatar_url))',
+    )
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;

@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-const POST_SELECT = '*, ate_users(username, display_name, avatar_url)';
+const POST_SELECT = '*, ate_users!ate_posts_user_id_fkey(username, display_name, avatar_url)';
 
 export async function fetchFeed() {
   const { data, error } = await supabase
