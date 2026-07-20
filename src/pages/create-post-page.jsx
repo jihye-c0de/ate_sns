@@ -27,6 +27,7 @@ function CreatePostPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [previewUrl, setPreviewUrl] = useState('');
+  const [originalFile, setOriginalFile] = useState(null);
   const [processedBlob, setProcessedBlob] = useState(null);
   const [isCutout, setIsCutout] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -42,6 +43,7 @@ function CreatePostPage() {
     if (!file) return;
     setError('');
     setProcessing(true);
+    setOriginalFile(file);
     setProcessedBlob(null);
     setIsCutout(false);
     try {
@@ -75,10 +77,12 @@ function CreatePostPage() {
     setError('');
     try {
       const imageUrl = await uploadPostImage(user.id, processedBlob);
+      const originalImageUrl = isCutout ? await uploadPostImage(user.id, originalFile) : imageUrl;
       const post = await createPost({
         userId: user.id,
         caption,
         imageUrl,
+        originalImageUrl,
         category,
         placeName,
         placeUrl: extractUrl(placeUrl),

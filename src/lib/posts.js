@@ -39,13 +39,23 @@ export async function fetchUserPosts(userId) {
   return data;
 }
 
-export async function createPost({ userId, caption, imageUrl, category, placeName, placeUrl, isCutout }) {
+export async function createPost({
+  userId,
+  caption,
+  imageUrl,
+  originalImageUrl,
+  category,
+  placeName,
+  placeUrl,
+  isCutout,
+}) {
   const { data, error } = await supabase
     .from('ate_posts')
     .insert({
       user_id: userId,
       caption,
       image_url: imageUrl,
+      original_image_url: originalImageUrl || imageUrl,
       category,
       place_name: placeName || null,
       place_url: placeUrl || null,
