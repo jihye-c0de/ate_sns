@@ -27,6 +27,7 @@ import { deletePost, updatePostCaption } from '../../lib/posts';
 import { isPostLiked, isPostSaved, likePost, savePost, unlikePost, unsavePost } from '../../lib/social';
 import { addComment } from '../../lib/comments';
 import { formatRelativeDate } from '../../utils/date';
+import CommentList from './comment-list';
 
 /**
  * PostCard 컴포넌트
@@ -35,13 +36,12 @@ import { formatRelativeDate } from '../../utils/date';
  * @param {object} post - 게시물 데이터 (ate_users 조인 포함) [Required]
  * @param {boolean} isDetail - 상세 페이지에서 렌더링되는지 여부 [Optional, 기본값: false]
  * @param {array} feedPostIds - 같은 목록에 속한 게시물 ID 배열 (상세 페이지에서 이어서 스크롤할 때 사용) [Optional]
- * @param {function} onCommentAdded - 댓글 입력창에서 댓글을 남긴 후 실행할 함수 (상세 페이지의 댓글 목록 새로고침용) [Optional]
  * @param {function} onDeleted - 게시물이 삭제된 후 실행할 함수 [Optional]
  *
  * Example usage:
  * <PostCard post={post} feedPostIds={posts.map((p) => p.id)} />
  */
-function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDeleted }) {
+function PostCard({ post, isDetail = false, feedPostIds, onDeleted }) {
   const { user } = useAuth();
   const author = post.ate_users;
   const isOwner = user?.id === post.user_id;
@@ -55,6 +55,7 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [editing, setEditing] = useState(false);
   const [caption, setCaption] = useState(post.caption || '');
+  const [commentRefresh, setCommentRefresh] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -115,7 +116,7 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
       await addComment(post.id, user.id, commentText.trim());
       setCommentText('');
       setCommentInputOpen(false);
-      onCommentAdded?.();
+      setCommentRefresh((n) => n + 1);
     } finally {
       setCommentSubmitting(false);
     }
@@ -161,9 +162,22 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
           >
             {author?.display_name || author?.username}
           </Typography>
-          <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-            {formatRelativeDate(post.created_at)}
-          </Typography>
+          {post.place_name ? (
+            <Stack direction="row" spacing={0.3} alignItems="center">
+              <PlaceRoundedIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
+              {post.place_url ? (
+                <Link href={post.place_url} target="_blank" rel="noopener noreferrer" sx={{ fontSize: '0.75rem' }}>
+                  {post.place_name}
+                </Link>
+              ) : (
+                <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{post.place_name}</Typography>
+              )}
+            </Stack>
+          ) : (
+            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+              {formatRelativeDate(post.created_at)}
+            </Typography>
+          )}
         </Box>
         {isOwner && (
           <>
@@ -262,7 +276,7 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
           </Stack>
         ) : (
           caption && (
-            <Typography sx={{ fontSize: '0.9rem', mb: 1 }}>
+            <Typography sx={{ fontSize: '0.9rem', mb: 0.5 }}>
               <Box component="span" sx={{ fontWeight: 600, mr: 0.5 }}>
                 {author?.username}
               </Box>
@@ -272,17 +286,12 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
         )}
 
         {post.place_name && (
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <PlaceRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-            {post.place_url ? (
-              <Link href={post.place_url} target="_blank" rel="noopener noreferrer" sx={{ fontSize: '0.8rem' }}>
-                {post.place_name}
-              </Link>
-            ) : (
-              <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{post.place_name}</Typography>
-            )}
-          </Stack>
+          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>
+            {formatRelativeDate(post.created_at)}
+          </Typography>
         )}
+
+        {isDetail && <CommentList postId={post.id} refreshSignal={commentRefresh} />}
       </CardContent>
     </Card>
   );

@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Divider from '@mui/material/Divider';
 import PostCard from './post-card';
-import CommentList from './comment-list';
 import { fetchPostById } from '../../lib/posts';
 
 /**
@@ -19,7 +17,6 @@ import { fetchPostById } from '../../lib/posts';
 function PostDetailBlock({ postId, onDeleted }) {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [commentRefresh, setCommentRefresh] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,19 +47,7 @@ function PostDetailBlock({ postId, onDeleted }) {
     return null;
   }
 
-  return (
-    <Box>
-      <PostCard
-        post={post}
-        isDetail
-        onDeleted={onDeleted}
-        onCommentAdded={() => setCommentRefresh((n) => n + 1)}
-      />
-      <Divider sx={{ mb: 3 }} />
-      <CommentList postId={post.id} refreshSignal={commentRefresh} />
-      <Divider sx={{ mt: 3, mb: 3 }} />
-    </Box>
-  );
+  return <PostCard post={post} isDetail onDeleted={onDeleted} />;
 }
 
 export default PostDetailBlock;
