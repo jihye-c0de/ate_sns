@@ -10,6 +10,12 @@ export async function fetchProfileByUsername(username) {
   return data;
 }
 
+export async function fetchProfileById(userId) {
+  const { data, error } = await supabase.from('ate_users').select('*').eq('id', userId).single();
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchFollowCounts(userId) {
   const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
     supabase.from('ate_follows').select('*', { count: 'exact', head: true }).eq('following_id', userId),

@@ -13,7 +13,14 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserPosts } from '../lib/posts';
-import { fetchFollowCounts, fetchProfileByUsername, followUser, isFollowing, unfollowUser } from '../lib/social';
+import {
+  fetchFollowCounts,
+  fetchProfileById,
+  fetchProfileByUsername,
+  followUser,
+  isFollowing,
+  unfollowUser,
+} from '../lib/social';
 import { supabase } from '../lib/supabase';
 import CalendarGrid from '../components/calendar/calendar-grid';
 
@@ -24,7 +31,7 @@ import CalendarGrid from '../components/calendar/calendar-grid';
  */
 function MyPage() {
   const { username } = useParams();
-  const { user, profile: myProfile, signOut, refreshProfile } = useAuth();
+  const { user, signOut, refreshProfile } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -36,37 +43,50 @@ function MyPage() {
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
 
-  const isOwnProfile = !username || (myProfile && username === myProfile.username);
+  const isOwnProfile = !username;
 
   useEffect(() => {
+    if (isOwnProfile && !user) return;
+
+    let cancelled = false;
     setLoading(true);
+
     const load = async () => {
-      const targetProfile = isOwnProfile ? myProfile : await fetchProfileByUsername(username);
-      if (!targetProfile) {
-        setLoading(false);
-        return;
-      }
-      setProfile(targetProfile);
-      setDisplayName(targetProfile.display_name || '');
-      setBio(targetProfile.bio || '');
+      try {
+        const targetProfile = isOwnProfile
+          ? await fetchProfileById(user.id)
+          : await fetchProfileByUsername(username);
+        if (cancelled) return;
+        if (!targetProfile) return;
 
-      const [userPosts, followCounts] = await Promise.all([
-        fetchUserPosts(targetProfile.id),
-        fetchFollowCounts(targetProfile.id),
-      ]);
-      setPosts(userPosts);
-      setCounts(followCounts);
+        setProfile(targetProfile);
+        setDisplayName(targetProfile.display_name || '');
+        setBio(targetProfile.bio || '');
 
-      if (!isOwnProfile && user) {
-        const result = await isFollowing(user.id, targetProfile.id);
-        setFollowing(result);
+        const [userPosts, followCounts] = await Promise.all([
+          fetchUserPosts(targetProfile.id),
+          fetchFollowCounts(targetProfile.id),
+        ]);
+        if (cancelled) return;
+        setPosts(userPosts);
+        setCounts(followCounts);
+
+        if (!isOwnProfile && user) {
+          const result = await isFollowing(user.id, targetProfile.id);
+          if (!cancelled) setFollowing(result);
+        }
+      } catch (error) {
+        console.error('마이페이지를 불러오지 못했어요:', error);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     };
-    if (isOwnProfile ? myProfile : username) {
-      load();
-    }
-  }, [isOwnProfile, myProfile, username, user]);
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwnProfile, username, user]);
 
   const handleToggleFollow = async () => {
     if (!user || !profile) return;
