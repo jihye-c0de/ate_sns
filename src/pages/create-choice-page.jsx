@@ -17,51 +17,56 @@ function CreateChoicePage() {
   const options = [
     {
       to: '/create/post',
-      icon: <PhotoCameraRoundedIcon sx={{ fontSize: 36 }} />,
+      icon: <PhotoCameraRoundedIcon sx={{ fontSize: 56 }} />,
       title: '게시물 작성',
-      description: '피드에 올라가는 게시물을 작성해요',
+      description: '피드에 올라가는\n게시물을 작성해요',
+      bgcolor: 'background.paper',
     },
     {
       to: '/create/calendar',
-      icon: <CalendarMonthRoundedIcon sx={{ fontSize: 36 }} />,
+      icon: <CalendarMonthRoundedIcon sx={{ fontSize: 56 }} />,
       title: '캘린더 기록 추가',
-      description: '게시물로는 안 올리고 캘린더에만 기록해요',
+      description: '게시물로는 안 올리고\n캘린더에만 기록해요',
+      bgcolor: 'background.default',
     },
   ];
 
   return (
-    <Box>
-      <Typography component="h1" sx={{ fontSize: { xs: '1.5rem', md: '1.75rem' }, fontWeight: 700, mb: 3 }}>
-        무엇을 기록할까요?
-      </Typography>
-
-      <Stack spacing={2}>
-        {options.map((option) => (
-          <ButtonBase
-            key={option.to}
-            onClick={() => navigate(option.to)}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              p: 3,
-              borderRadius: 0,
-              border: '1px solid',
-              borderColor: 'divider',
-              bgcolor: 'background.paper',
-              textAlign: 'left',
-            }}
-          >
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        height: 'calc(100vh - 168px)',
+        minHeight: 420,
+        mx: { xs: -2, md: -3 },
+      }}
+    >
+      {options.map((option, index) => (
+        <ButtonBase
+          key={option.to}
+          onClick={() => navigate(option.to)}
+          sx={{
+            flex: 1,
+            height: '100%',
+            bgcolor: option.bgcolor,
+            borderRight: index === 0 ? '1px solid' : 0,
+            borderColor: 'divider',
+            borderRadius: 0,
+          }}
+        >
+          <Stack alignItems="center" justifyContent="center" spacing={2} sx={{ px: 2, height: '100%' }}>
             <Box sx={{ color: 'secondary.main' }}>{option.icon}</Box>
-            <Box>
-              <Typography sx={{ fontWeight: 700 }}>{option.title}</Typography>
-              <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-                {option.description}
-              </Typography>
-            </Box>
-          </ButtonBase>
-        ))}
-      </Stack>
+            <Typography sx={{ fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' }}>
+              {option.title}
+            </Typography>
+            <Typography
+              sx={{ fontSize: '0.85rem', color: 'text.secondary', textAlign: 'center', whiteSpace: 'pre-line' }}
+            >
+              {option.description}
+            </Typography>
+          </Stack>
+        </ButtonBase>
+      ))}
     </Box>
   );
 }
