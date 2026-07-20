@@ -46,7 +46,10 @@ function CreatePostPage() {
     try {
       const removeImageBackground = async () => {
         const { removeBackground } = await import('@imgly/background-removal');
-        const cutout = await removeBackground(file);
+        const cutout = await removeBackground(file, {
+          publicPath: `${window.location.origin}${import.meta.env.BASE_URL}bg-removal/`,
+          model: 'isnet_quint8',
+        });
         return trimTransparentPadding(cutout);
       };
       const blob = await withTimeout(removeImageBackground(), BACKGROUND_REMOVAL_TIMEOUT_MS);
