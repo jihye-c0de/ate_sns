@@ -40,9 +40,12 @@ function CreateChoicePage() {
               width: '47%',
               aspectRatio: '1 / 1',
               bgcolor: 'background.paper',
-              borderRadius: '5px',
+              borderRadius: '30px',
               boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
               p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <Stack alignItems="center" justifyContent="center" spacing={1.5} sx={{ width: '100%' }}>
@@ -58,7 +61,7 @@ function CreateChoicePage() {
                   color: 'secondary.main',
                 }}
               >
-                {option.icon}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{option.icon}</Box>
               </Box>
               <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', textAlign: 'center' }}>
                 {option.title}
