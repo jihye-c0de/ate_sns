@@ -10,6 +10,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import { Link as RouterLink } from 'react-router-dom';
@@ -48,6 +49,7 @@ function MyPage() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
   const isOwnProfile = !username;
 
@@ -116,20 +118,25 @@ function MyPage() {
 
   const handleSaveProfile = async () => {
     setSavingProfile(true);
+    setProfileError('');
     try {
       let avatarUrl = profile.avatar_url;
       if (avatarFile) {
         avatarUrl = await uploadAvatarImage(user.id, avatarFile);
       }
-      await supabase
+      const { error } = await supabase
         .from('ate_users')
         .update({ display_name: displayName, bio, avatar_url: avatarUrl })
         .eq('id', profile.id);
+      if (error) throw error;
       setProfile((prev) => ({ ...prev, display_name: displayName, bio, avatar_url: avatarUrl }));
       setAvatarFile(null);
       setAvatarPreview('');
       await refreshProfile();
       setEditing(false);
+    } catch (saveError) {
+      console.error('프로필 저장 실패:', saveError);
+      setProfileError(saveError.message || '프로필을 저장하지 못했어요. 다시 시도해주세요.');
     } finally {
       setSavingProfile(false);
     }
@@ -198,6 +205,7 @@ function MyPage() {
       {isOwnProfile ? (
         editing ? (
           <Stack spacing={1.5} sx={{ mb: 3 }}>
+            {profileError && <Alert severity="error">{profileError}</Alert>}
             <TextField
               label="표시 이름"
               value={displayName}
