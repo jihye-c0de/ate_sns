@@ -16,6 +16,17 @@ export async function fetchProfileById(userId) {
   return data;
 }
 
+export async function uploadAvatarImage(userId, file) {
+  const extension = file.type === 'image/png' ? 'png' : 'jpg';
+  const fileName = `${userId}/${Date.now()}.${extension}`;
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, file, { contentType: file.type, upsert: true });
+  if (uploadError) throw uploadError;
+  const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
 export async function fetchFollowCounts(userId) {
   const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
     supabase.from('ate_follows').select('*', { count: 'exact', head: true }).eq('following_id', userId),

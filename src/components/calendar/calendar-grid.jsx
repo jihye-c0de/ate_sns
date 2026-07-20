@@ -103,13 +103,18 @@ function CalendarGrid({ posts }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderRadius: 0,
-                    bgcolor: post ? 'background.default' : 'transparent',
+                    bgcolor: post && !post.is_cutout ? 'background.default' : 'transparent',
                     overflow: 'hidden',
                     position: 'relative',
                   }}
                 >
                   {post ? (
-                    <Box component="img" src={post.image_url} alt="" sx={{ width: '100%', height: '100%', objectFit: 'contain', p: 0.5 }} />
+                    <Box
+                      component="img"
+                      src={post.image_url}
+                      alt=""
+                      sx={{ width: '100%', height: '100%', objectFit: 'contain', p: post.is_cutout ? 0 : 0.5 }}
+                    />
                   ) : (
                     <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{day}</Typography>
                   )}

@@ -24,6 +24,10 @@ function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleDeleted = (deletedId) => {
+    setPosts((prev) => prev.filter((post) => post.id !== deletedId));
+  };
+
   const filteredPosts = useMemo(() => {
     if (!keyword.trim()) return posts;
     const lower = keyword.trim().toLowerCase();
@@ -73,7 +77,12 @@ function HomePage() {
       )}
 
       {filteredPosts.map((post) => (
-        <PostCard key={post.id} post={post} feedPostIds={filteredPosts.map((p) => p.id)} />
+        <PostCard
+          key={post.id}
+          post={post}
+          feedPostIds={filteredPosts.map((p) => p.id)}
+          onDeleted={handleDeleted}
+        />
       ))}
     </Box>
   );

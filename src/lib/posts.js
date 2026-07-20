@@ -39,7 +39,7 @@ export async function fetchUserPosts(userId) {
   return data;
 }
 
-export async function createPost({ userId, caption, imageUrl, category, placeName, placeUrl }) {
+export async function createPost({ userId, caption, imageUrl, category, placeName, placeUrl, isCutout }) {
   const { data, error } = await supabase
     .from('ate_posts')
     .insert({
@@ -49,6 +49,7 @@ export async function createPost({ userId, caption, imageUrl, category, placeNam
       category,
       place_name: placeName || null,
       place_url: placeUrl || null,
+      is_cutout: Boolean(isCutout),
     })
     .select(POST_SELECT)
     .single();

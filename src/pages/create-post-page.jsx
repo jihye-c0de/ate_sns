@@ -27,6 +27,7 @@ function CreatePostPage() {
   const navigate = useNavigate();
   const [previewUrl, setPreviewUrl] = useState('');
   const [processedBlob, setProcessedBlob] = useState(null);
+  const [isCutout, setIsCutout] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -41,6 +42,7 @@ function CreatePostPage() {
     setError('');
     setProcessing(true);
     setProcessedBlob(null);
+    setIsCutout(false);
     try {
       const removeImageBackground = async () => {
         const { removeBackground } = await import('@imgly/background-removal');
@@ -49,11 +51,13 @@ function CreatePostPage() {
       };
       const blob = await withTimeout(removeImageBackground(), BACKGROUND_REMOVAL_TIMEOUT_MS);
       setProcessedBlob(blob);
+      setIsCutout(true);
       setPreviewUrl(URL.createObjectURL(blob));
     } catch (removalError) {
       console.error('배경 제거 실패:', removalError);
       setError('사진 배경 제거를 완료하지 못해 원본 사진으로 진행할게요.');
       setProcessedBlob(file);
+      setIsCutout(false);
       setPreviewUrl(URL.createObjectURL(file));
     } finally {
       setProcessing(false);
@@ -74,6 +78,7 @@ function CreatePostPage() {
         category,
         placeName,
         placeUrl,
+        isCutout,
       });
       navigate(`/post/${post.id}`);
     } catch (submitError) {

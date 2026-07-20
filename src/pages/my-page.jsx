@@ -10,6 +10,8 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserPosts } from '../lib/posts';
@@ -20,6 +22,7 @@ import {
   followUser,
   isFollowing,
   unfollowUser,
+  uploadAvatarImage,
 } from '../lib/social';
 import { supabase } from '../lib/supabase';
 import CalendarGrid from '../components/calendar/calendar-grid';
@@ -42,6 +45,9 @@ function MyPage() {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const isOwnProfile = !username;
 
@@ -101,11 +107,32 @@ function MyPage() {
     }
   };
 
+  const handleAvatarChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
   const handleSaveProfile = async () => {
-    await supabase.from('ate_users').update({ display_name: displayName, bio }).eq('id', profile.id);
-    setProfile((prev) => ({ ...prev, display_name: displayName, bio }));
-    await refreshProfile();
-    setEditing(false);
+    setSavingProfile(true);
+    try {
+      let avatarUrl = profile.avatar_url;
+      if (avatarFile) {
+        avatarUrl = await uploadAvatarImage(user.id, avatarFile);
+      }
+      await supabase
+        .from('ate_users')
+        .update({ display_name: displayName, bio, avatar_url: avatarUrl })
+        .eq('id', profile.id);
+      setProfile((prev) => ({ ...prev, display_name: displayName, bio, avatar_url: avatarUrl }));
+      setAvatarFile(null);
+      setAvatarPreview('');
+      await refreshProfile();
+      setEditing(false);
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   if (loading) {
@@ -123,9 +150,34 @@ function MyPage() {
   return (
     <Box>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <Avatar src={profile.avatar_url} sx={{ width: 72, height: 72 }}>
-          {profile.display_name?.[0] ?? '?'}
-        </Avatar>
+        <Box sx={{ position: 'relative' }}>
+          <Avatar src={avatarPreview || profile.avatar_url} sx={{ width: 72, height: 72 }}>
+            {profile.display_name?.[0] ?? '?'}
+          </Avatar>
+          {isOwnProfile && editing && (
+            <IconButton
+              component="label"
+              size="small"
+              sx={{
+                position: 'absolute',
+                bottom: -4,
+                right: -4,
+                bgcolor: 'secondary.main',
+                color: 'secondary.contrastText',
+                '&:hover': { bgcolor: 'secondary.dark' },
+              }}
+            >
+              <PhotoCameraRoundedIcon sx={{ fontSize: 16 }} />
+              <Box
+                component="input"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                sx={{ display: 'none' }}
+              />
+            </IconButton>
+          )}
+        </Box>
         <Box sx={{ flexGrow: 1 }}>
           <Typography sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
             {profile.display_name || profile.username}
@@ -162,10 +214,17 @@ function MyPage() {
               fullWidth
             />
             <Stack direction="row" spacing={1}>
-              <Button variant="contained" size="small" onClick={handleSaveProfile}>
-                저장
+              <Button variant="contained" size="small" onClick={handleSaveProfile} disabled={savingProfile}>
+                {savingProfile ? '저장 중...' : '저장'}
               </Button>
-              <Button size="small" onClick={() => setEditing(false)}>
+              <Button
+                size="small"
+                onClick={() => {
+                  setEditing(false);
+                  setAvatarFile(null);
+                  setAvatarPreview('');
+                }}
+              >
                 취소
               </Button>
             </Stack>

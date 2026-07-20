@@ -4,12 +4,10 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
-import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import { useAuth } from '../../context/AuthContext';
-import { addComment, deleteComment, fetchComments } from '../../lib/comments';
+import { deleteComment, fetchComments } from '../../lib/comments';
 import { formatRelativeDate } from '../../utils/date';
 
 /**
@@ -17,29 +15,21 @@ import { formatRelativeDate } from '../../utils/date';
  *
  * Props:
  * @param {number} postId - 댓글을 표시할 게시물 ID [Required]
+ * @param {number} refreshSignal - 값이 바뀔 때마다 댓글 목록을 다시 불러옴 [Optional]
  *
  * Example usage:
- * <CommentList postId={post.id} />
+ * <CommentList postId={post.id} refreshSignal={commentRefresh} />
  */
-function CommentList({ postId }) {
-  const { user, profile } = useAuth();
+function CommentList({ postId, refreshSignal }) {
+  const { user } = useAuth();
   const [comments, setComments] = useState([]);
-  const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchComments(postId)
       .then(setComments)
       .finally(() => setLoading(false));
-  }, [postId]);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!content.trim() || !user) return;
-    const newComment = await addComment(postId, user.id, content.trim());
-    setComments((prev) => [...prev, { ...newComment, ate_users: profile }]);
-    setContent('');
-  };
+  }, [postId, refreshSignal]);
 
   const handleDelete = async (commentId) => {
     await deleteComment(commentId);
@@ -85,21 +75,6 @@ function CommentList({ postId }) {
           </Typography>
         )}
       </Stack>
-
-      {user && (
-        <Stack component="form" direction="row" spacing={1} onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="댓글 달기..."
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-          />
-          <IconButton type="submit" color="primary" disabled={!content.trim()}>
-            <SendRoundedIcon />
-          </IconButton>
-        </Stack>
-      )}
     </Box>
   );
 }

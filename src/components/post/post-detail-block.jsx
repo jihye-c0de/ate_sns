@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import PostCard from './post-card';
 import CommentList from './comment-list';
-import { useAuth } from '../../context/AuthContext';
-import { deletePost, fetchPostById, updatePostCaption } from '../../lib/posts';
+import { fetchPostById } from '../../lib/posts';
 
 /**
  * PostDetailBlock 컴포넌트
@@ -22,12 +17,9 @@ import { deletePost, fetchPostById, updatePostCaption } from '../../lib/posts';
  * <PostDetailBlock postId={5} />
  */
 function PostDetailBlock({ postId, onDeleted }) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [caption, setCaption] = useState('');
+  const [commentRefresh, setCommentRefresh] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,7 +28,6 @@ function PostDetailBlock({ postId, onDeleted }) {
       .then((data) => {
         if (cancelled) return;
         setPost(data);
-        setCaption(data.caption || '');
       })
       .catch(() => {})
       .finally(() => {
@@ -46,24 +37,6 @@ function PostDetailBlock({ postId, onDeleted }) {
       cancelled = true;
     };
   }, [postId]);
-
-  const isOwner = user && post && user.id === post.user_id;
-
-  const handleSaveCaption = async () => {
-    await updatePostCaption(post.id, caption);
-    setPost((prev) => ({ ...prev, caption }));
-    setEditing(false);
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm('이 게시물을 삭제할까요?')) return;
-    await deletePost(post.id);
-    if (onDeleted) {
-      onDeleted(post.id);
-    } else {
-      navigate('/');
-    }
-  };
 
   if (loading) {
     return (
@@ -79,43 +52,14 @@ function PostDetailBlock({ postId, onDeleted }) {
 
   return (
     <Box>
-      <PostCard post={post} isDetail />
-
-      {isOwner && (
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          {editing ? (
-            <>
-              <TextField
-                value={caption}
-                onChange={(event) => setCaption(event.target.value)}
-                multiline
-                fullWidth
-                size="small"
-              />
-              <Stack direction="row" spacing={1}>
-                <Button variant="contained" size="small" onClick={handleSaveCaption}>
-                  저장
-                </Button>
-                <Button size="small" onClick={() => setEditing(false)}>
-                  취소
-                </Button>
-              </Stack>
-            </>
-          ) : (
-            <Stack direction="row" spacing={1}>
-              <Button size="small" onClick={() => setEditing(true)}>
-                글 수정
-              </Button>
-              <Button size="small" color="error" onClick={handleDelete}>
-                삭제
-              </Button>
-            </Stack>
-          )}
-        </Stack>
-      )}
-
+      <PostCard
+        post={post}
+        isDetail
+        onDeleted={onDeleted}
+        onCommentAdded={() => setCommentRefresh((n) => n + 1)}
+      />
       <Divider sx={{ mb: 3 }} />
-      <CommentList postId={post.id} />
+      <CommentList postId={post.id} refreshSignal={commentRefresh} />
       <Divider sx={{ mt: 3, mb: 3 }} />
     </Box>
   );

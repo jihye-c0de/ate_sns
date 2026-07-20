@@ -8,8 +8,11 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import Chip from '@mui/material/Chip';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Link from '@mui/material/Link';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
 import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
@@ -17,9 +20,12 @@ import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import { useAuth } from '../../context/AuthContext';
-import { adjustPostLikes } from '../../lib/posts';
+import { adjustPostLikes, deletePost, updatePostCaption } from '../../lib/posts';
 import { isPostSaved, savePost, unsavePost } from '../../lib/social';
+import { addComment } from '../../lib/comments';
 import { formatRelativeDate } from '../../utils/date';
 
 /**
@@ -29,17 +35,27 @@ import { formatRelativeDate } from '../../utils/date';
  * @param {object} post - 게시물 데이터 (ate_users 조인 포함) [Required]
  * @param {boolean} isDetail - 상세 페이지에서 렌더링되는지 여부 [Optional, 기본값: false]
  * @param {array} feedPostIds - 같은 목록에 속한 게시물 ID 배열 (상세 페이지에서 이어서 스크롤할 때 사용) [Optional]
+ * @param {function} onCommentAdded - 댓글 입력창에서 댓글을 남긴 후 실행할 함수 (상세 페이지의 댓글 목록 새로고침용) [Optional]
+ * @param {function} onDeleted - 게시물이 삭제된 후 실행할 함수 [Optional]
  *
  * Example usage:
  * <PostCard post={post} feedPostIds={posts.map((p) => p.id)} />
  */
-function PostCard({ post, isDetail = false, feedPostIds }) {
+function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDeleted }) {
   const { user } = useAuth();
   const author = post.ate_users;
+  const isOwner = user?.id === post.user_id;
+
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savedChecked, setSavedChecked] = useState(false);
+  const [commentInputOpen, setCommentInputOpen] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [caption, setCaption] = useState(post.caption || '');
 
   const checkSaved = async () => {
     if (!user || savedChecked) return;
@@ -77,6 +93,20 @@ function PostCard({ post, isDetail = false, feedPostIds }) {
     }
   };
 
+  const handleCommentSubmit = async (event) => {
+    event.preventDefault();
+    if (!commentText.trim() || !user) return;
+    setCommentSubmitting(true);
+    try {
+      await addComment(post.id, user.id, commentText.trim());
+      setCommentText('');
+      setCommentInputOpen(false);
+      onCommentAdded?.();
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}${window.location.pathname}#/post/${post.id}`;
     if (navigator.share) {
@@ -84,6 +114,18 @@ function PostCard({ post, isDetail = false, feedPostIds }) {
     } else {
       await navigator.clipboard.writeText(shareUrl).catch(() => {});
     }
+  };
+
+  const handleSaveCaption = async () => {
+    await updatePostCaption(post.id, caption);
+    setEditing(false);
+  };
+
+  const handleDelete = async () => {
+    setMenuAnchor(null);
+    if (!window.confirm('이 게시물을 삭제할까요?')) return;
+    await deletePost(post.id);
+    onDeleted?.(post.id);
   };
 
   return (
@@ -109,7 +151,26 @@ function PostCard({ post, isDetail = false, feedPostIds }) {
             {formatRelativeDate(post.created_at)}
           </Typography>
         </Box>
-        <Chip label={post.category} size="small" sx={{ bgcolor: 'background.default' }} />
+        {isOwner && (
+          <>
+            <IconButton size="small" onClick={(event) => setMenuAnchor(event.currentTarget)}>
+              <MoreVertRoundedIcon />
+            </IconButton>
+            <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)}>
+              <MenuItem
+                onClick={() => {
+                  setMenuAnchor(null);
+                  setEditing(true);
+                }}
+              >
+                글 수정
+              </MenuItem>
+              <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                삭제
+              </MenuItem>
+            </Menu>
+          </>
+        )}
       </Stack>
 
       <Box
@@ -136,7 +197,7 @@ function PostCard({ post, isDetail = false, feedPostIds }) {
         <IconButton onClick={handleLike} disabled={!user} size="small">
           {liked ? <FavoriteRoundedIcon color="error" /> : <FavoriteBorderRoundedIcon />}
         </IconButton>
-        <IconButton component={RouterLink} to={`/post/${post.id}`} size="small">
+        <IconButton onClick={() => setCommentInputOpen((open) => !open)} disabled={!user} size="small">
           <ChatBubbleOutlineRoundedIcon />
         </IconButton>
         <IconButton onClick={handleSave} onFocus={checkSaved} onMouseEnter={checkSaved} disabled={!user} size="small">
@@ -147,16 +208,55 @@ function PostCard({ post, isDetail = false, feedPostIds }) {
         </IconButton>
       </CardActions>
 
+      {commentInputOpen && user && (
+        <Stack component="form" direction="row" spacing={1} onSubmit={handleCommentSubmit} sx={{ px: 2, pb: 1 }}>
+          <TextField
+            fullWidth
+            size="small"
+            autoFocus
+            placeholder="댓글 달기..."
+            value={commentText}
+            onChange={(event) => setCommentText(event.target.value)}
+          />
+          <IconButton type="submit" color="primary" disabled={!commentText.trim() || commentSubmitting}>
+            <SendRoundedIcon />
+          </IconButton>
+        </Stack>
+      )}
+
       <CardContent sx={{ pt: 1 }}>
         <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, mb: 0.5 }}>좋아요 {likesCount}개</Typography>
-        {post.caption && (
-          <Typography sx={{ fontSize: '0.9rem', mb: 1 }}>
-            <Box component="span" sx={{ fontWeight: 600, mr: 0.5 }}>
-              {author?.username}
-            </Box>
-            {post.caption}
-          </Typography>
+
+        {editing ? (
+          <Stack spacing={1} sx={{ mb: 1 }}>
+            <TextField
+              value={caption}
+              onChange={(event) => setCaption(event.target.value)}
+              multiline
+              fullWidth
+              size="small"
+              autoFocus
+            />
+            <Stack direction="row" spacing={1}>
+              <Button variant="contained" size="small" onClick={handleSaveCaption}>
+                저장
+              </Button>
+              <Button size="small" onClick={() => setEditing(false)}>
+                취소
+              </Button>
+            </Stack>
+          </Stack>
+        ) : (
+          caption && (
+            <Typography sx={{ fontSize: '0.9rem', mb: 1 }}>
+              <Box component="span" sx={{ fontWeight: 600, mr: 0.5 }}>
+                {author?.username}
+              </Box>
+              {caption}
+            </Typography>
+          )
         )}
+
         {post.place_name && (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <PlaceRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
