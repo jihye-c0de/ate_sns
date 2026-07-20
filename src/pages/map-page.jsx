@@ -94,6 +94,7 @@ function MapPage() {
                   key={post.id}
                   component={RouterLink}
                   to={`/post/${post.id}`}
+                  state={{ postIds: place.posts.map((p) => p.id) }}
                   variant="rounded"
                   src={post.image_url}
                   sx={{ width: 36, height: 36, bgcolor: 'background.default' }}

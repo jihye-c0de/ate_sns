@@ -28,11 +28,12 @@ import { formatRelativeDate } from '../../utils/date';
  * Props:
  * @param {object} post - 게시물 데이터 (ate_users 조인 포함) [Required]
  * @param {boolean} isDetail - 상세 페이지에서 렌더링되는지 여부 [Optional, 기본값: false]
+ * @param {array} feedPostIds - 같은 목록에 속한 게시물 ID 배열 (상세 페이지에서 이어서 스크롤할 때 사용) [Optional]
  *
  * Example usage:
- * <PostCard post={post} />
+ * <PostCard post={post} feedPostIds={posts.map((p) => p.id)} />
  */
-function PostCard({ post, isDetail = false }) {
+function PostCard({ post, isDetail = false, feedPostIds }) {
   const { user } = useAuth();
   const author = post.ate_users;
   const [likesCount, setLikesCount] = useState(post.likes_count);
@@ -114,11 +115,12 @@ function PostCard({ post, isDetail = false }) {
       <Box
         component={isDetail ? 'div' : RouterLink}
         to={isDetail ? undefined : `/post/${post.id}`}
+        state={isDetail ? undefined : { postIds: feedPostIds }}
         sx={{
           display: 'block',
           width: '100%',
-          aspectRatio: '1 / 1',
-          bgcolor: 'background.default',
+          aspectRatio: '4 / 5',
+          maxHeight: 480,
           mt: 2,
         }}
       >
@@ -126,7 +128,7 @@ function PostCard({ post, isDetail = false }) {
           component="img"
           src={post.image_url}
           alt={post.caption || 'post'}
-          sx={{ width: '100%', height: '100%', objectFit: 'contain', p: 2 }}
+          sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
         />
       </Box>
 

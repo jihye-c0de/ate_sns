@@ -73,7 +73,7 @@ function HomePage() {
       )}
 
       {filteredPosts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} feedPostIds={filteredPosts.map((p) => p.id)} />
       ))}
     </Box>
   );

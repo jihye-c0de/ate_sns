@@ -119,7 +119,12 @@ function CalendarGrid({ posts }) {
               return (
                 <Box key={dateKey} sx={{ aspectRatio: '1 / 1' }}>
                   {post ? (
-                    <Box component={RouterLink} to={`/post/${post.id}`} sx={{ display: 'block', width: '100%', height: '100%' }}>
+                    <Box
+                      component={RouterLink}
+                      to={`/post/${post.id}`}
+                      state={{ postIds: posts.map((p) => p.id) }}
+                      sx={{ display: 'block', width: '100%', height: '100%' }}
+                    >
                       {cellContent}
                     </Box>
                   ) : (

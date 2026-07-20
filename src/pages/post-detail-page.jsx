@@ -1,105 +1,56 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import PostCard from '../components/post/post-card';
-import CommentList from '../components/post/comment-list';
-import { useAuth } from '../context/AuthContext';
-import { deletePost, fetchPostById, updatePostCaption } from '../lib/posts';
+import PostDetailBlock from '../components/post/post-detail-block';
 
 /**
  * PostDetailPage 컴포넌트
  *
  * Props: 없음 (라우트로 렌더링되는 페이지, useParams로 postId 조회)
+ *
+ * 그리드/피드에서 postIds 목록을 state로 넘겨받으면 해당 목록을 이어서
+ * 렌더링해 인스타그램처럼 스크롤로 다음 게시물을 계속 볼 수 있게 한다.
+ * state가 없으면(직접 접속, 공유 링크 등) 해당 게시물 하나만 보여준다.
  */
 function PostDetailPage() {
   const { postId } = useParams();
-  const { user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [caption, setCaption] = useState('');
+
+  const initialIds = location.state?.postIds;
+  const [ids, setIds] = useState(() =>
+    Array.isArray(initialIds) && initialIds.length > 0 ? initialIds.map(String) : [String(postId)],
+  );
+  const blockRefs = useRef({});
 
   useEffect(() => {
-    fetchPostById(postId)
-      .then((data) => {
-        setPost(data);
-        setCaption(data.caption || '');
-      })
-      .finally(() => setLoading(false));
-  }, [postId]);
+    const target = blockRefs.current[String(postId)];
+    if (target) {
+      target.scrollIntoView({ block: 'start' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const isOwner = user && post && user.id === post.user_id;
-
-  const handleSaveCaption = async () => {
-    await updatePostCaption(post.id, caption);
-    setPost((prev) => ({ ...prev, caption }));
-    setEditing(false);
+  const handleDeleted = (deletedId) => {
+    setIds((prev) => {
+      const next = prev.filter((id) => id !== String(deletedId));
+      if (next.length === 0) navigate('/');
+      return next;
+    });
   };
-
-  const handleDelete = async () => {
-    if (!window.confirm('이 게시물을 삭제할까요?')) return;
-    await deletePost(post.id);
-    navigate('/');
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress color="secondary" />
-      </Box>
-    );
-  }
-
-  if (!post) {
-    return <Typography sx={{ textAlign: 'center', py: 8 }}>게시물을 찾을 수 없어요.</Typography>;
-  }
 
   return (
     <Box>
-      <PostCard post={post} isDetail />
-
-      {isOwner && (
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          {editing ? (
-            <>
-              <TextField
-                value={caption}
-                onChange={(event) => setCaption(event.target.value)}
-                multiline
-                fullWidth
-                size="small"
-              />
-              <Stack direction="row" spacing={1}>
-                <Button variant="contained" size="small" onClick={handleSaveCaption}>
-                  저장
-                </Button>
-                <Button size="small" onClick={() => setEditing(false)}>
-                  취소
-                </Button>
-              </Stack>
-            </>
-          ) : (
-            <Stack direction="row" spacing={1}>
-              <Button size="small" onClick={() => setEditing(true)}>
-                글 수정
-              </Button>
-              <Button size="small" color="error" onClick={handleDelete}>
-                삭제
-              </Button>
-            </Stack>
-          )}
-        </Stack>
-      )}
-
-      <Divider sx={{ mb: 2 }} />
-      <CommentList postId={post.id} />
+      {ids.map((id) => (
+        <PostDetailBlock
+          key={id}
+          postId={id}
+          onDeleted={handleDeleted}
+          ref={(node) => {
+            blockRefs.current[id] = node;
+          }}
+        />
+      ))}
     </Box>
   );
 }

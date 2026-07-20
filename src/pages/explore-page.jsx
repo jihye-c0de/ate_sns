@@ -67,6 +67,7 @@ function ExplorePage() {
             <Box
               component={RouterLink}
               to={`/post/${post.id}`}
+              state={{ postIds: posts.map((p) => p.id) }}
               sx={{
                 display: 'block',
                 width: '100%',
