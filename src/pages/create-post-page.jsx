@@ -12,6 +12,9 @@ import Alert from '@mui/material/Alert';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import { useAuth } from '../context/AuthContext';
 import { createPost, uploadPostImage } from '../lib/posts';
+import { withTimeout } from '../utils/with-timeout';
+
+const BACKGROUND_REMOVAL_TIMEOUT_MS = 20000;
 
 /**
  * CreatePostPage 컴포넌트
@@ -38,12 +41,16 @@ function CreatePostPage() {
     setProcessing(true);
     setProcessedBlob(null);
     try {
-      const { removeBackground } = await import('@imgly/background-removal');
-      const blob = await removeBackground(file);
+      const removeImageBackground = async () => {
+        const { removeBackground } = await import('@imgly/background-removal');
+        return removeBackground(file);
+      };
+      const blob = await withTimeout(removeImageBackground(), BACKGROUND_REMOVAL_TIMEOUT_MS);
       setProcessedBlob(blob);
       setPreviewUrl(URL.createObjectURL(blob));
-    } catch {
-      setError('사진 배경 제거에 실패해서 원본 사진을 사용할게요.');
+    } catch (removalError) {
+      console.error('배경 제거 실패:', removalError);
+      setError('사진 배경 제거를 완료하지 못해 원본 사진으로 진행할게요.');
       setProcessedBlob(file);
       setPreviewUrl(URL.createObjectURL(file));
     } finally {
@@ -67,7 +74,8 @@ function CreatePostPage() {
         placeUrl,
       });
       navigate(`/post/${post.id}`);
-    } catch {
+    } catch (submitError) {
+      console.error('게시물 저장 실패:', submitError);
       setError('게시물을 저장하지 못했어요. 다시 시도해주세요.');
       setSubmitting(false);
     }
