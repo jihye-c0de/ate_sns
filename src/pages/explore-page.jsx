@@ -72,14 +72,15 @@ function ExplorePage() {
                 display: 'block',
                 width: '100%',
                 aspectRatio: '1 / 1',
-                bgcolor: post.is_cutout ? 'transparent' : 'background.paper',
+                bgcolor: 'background.paper',
+                overflow: 'hidden',
               }}
             >
               <Box
                 component="img"
                 src={post.image_url}
                 alt={post.caption || 'post'}
-                sx={{ width: '100%', height: '100%', objectFit: 'contain', p: post.is_cutout ? 0 : 1 }}
+                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </Box>
           </Grid>
