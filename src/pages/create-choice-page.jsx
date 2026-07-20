@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
@@ -43,12 +42,9 @@ function CreateChoicePage() {
               borderRadius: '30px',
               boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
               p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
             }}
           >
-            <Stack alignItems="center" justifyContent="center" spacing={1.5} sx={{ width: '100%' }}>
+            <Box sx={{ width: '100%', textAlign: 'center' }}>
               <Box
                 sx={{
                   width: 64,
@@ -59,19 +55,21 @@ function CreateChoicePage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'secondary.main',
+                  mx: 'auto',
+                  mb: 1.5,
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{option.icon}</Box>
+                {option.icon}
               </Box>
               <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', textAlign: 'center' }}>
                 {option.title}
               </Typography>
               <Typography
-                sx={{ fontSize: '0.75rem', color: 'text.secondary', textAlign: 'center', whiteSpace: 'pre-line' }}
+                sx={{ fontSize: '0.75rem', color: 'text.secondary', textAlign: 'center', whiteSpace: 'pre-line', mt: 0.5 }}
               >
                 {option.description}
               </Typography>
-            </Stack>
+            </Box>
           </ButtonBase>
         ))}
       </Box>
