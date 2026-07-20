@@ -41,8 +41,10 @@ function BottomNav() {
       sx={{
         position: 'fixed',
         bottom: 0,
-        left: 0,
-        right: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '100%',
+        maxWidth: 'sm',
         zIndex: (theme) => theme.zIndex.appBar,
         borderTop: '1px solid',
         borderColor: 'divider',
