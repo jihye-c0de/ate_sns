@@ -154,6 +154,8 @@ function MyPage() {
     return <Typography sx={{ textAlign: 'center', py: 8 }}>사용자를 찾을 수 없어요.</Typography>;
   }
 
+  const feedPosts = posts.filter((post) => !post.is_calendar_only);
+
   return (
     <Box>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
@@ -191,7 +193,7 @@ function MyPage() {
           </Typography>
           <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>@{profile.username}</Typography>
           <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
-            <Typography sx={{ fontSize: '0.85rem' }}>게시물 {posts.length}</Typography>
+            <Typography sx={{ fontSize: '0.85rem' }}>게시물 {feedPosts.length}</Typography>
             <Typography sx={{ fontSize: '0.85rem' }}>팔로워 {counts.followerCount}</Typography>
             <Typography sx={{ fontSize: '0.85rem' }}>팔로잉 {counts.followingCount}</Typography>
           </Stack>
@@ -270,12 +272,12 @@ function MyPage() {
 
       {tab === 'posts' && (
         <Grid container spacing={0.5}>
-          {posts.map((post) => (
+          {feedPosts.map((post) => (
             <Grid key={post.id} size={{ xs: 4 }}>
               <Box
                 component={RouterLink}
                 to={`/post/${post.id}`}
-                state={{ postIds: posts.map((p) => p.id) }}
+                state={{ postIds: feedPosts.map((p) => p.id) }}
                 sx={{
                   display: 'block',
                   width: '100%',
@@ -293,7 +295,7 @@ function MyPage() {
               </Box>
             </Grid>
           ))}
-          {posts.length === 0 && (
+          {feedPosts.length === 0 && (
             <Typography sx={{ color: 'text.secondary', textAlign: 'center', py: 4, width: '100%' }}>
               아직 게시물이 없어요.
             </Typography>

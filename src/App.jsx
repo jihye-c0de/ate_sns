@@ -8,6 +8,7 @@ import SignupPage from './pages/signup-page';
 import HomePage from './pages/home-page';
 import ExplorePage from './pages/explore-page';
 import PostDetailPage from './pages/post-detail-page';
+import CreateChoicePage from './pages/create-choice-page';
 import CreatePostPage from './pages/create-post-page';
 import MyPage from './pages/my-page';
 import MapPage from './pages/map-page';
@@ -67,7 +68,27 @@ function App() {
         element={
           <AppLayout>
             <ProtectedRoute>
+              <CreateChoicePage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/create/post"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
               <CreatePostPage />
+            </ProtectedRoute>
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/create/calendar"
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <CreatePostPage calendarOnly />
             </ProtectedRoute>
           </AppLayout>
         }

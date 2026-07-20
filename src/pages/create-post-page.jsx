@@ -21,9 +21,14 @@ const BACKGROUND_REMOVAL_TIMEOUT_MS = 20000;
 /**
  * CreatePostPage 컴포넌트
  *
- * Props: 없음 (라우트로 렌더링되는 페이지)
+ * Props:
+ * @param {boolean} calendarOnly - true면 게시물 피드/탐색/마이페이지 게시물 탭에는 노출되지 않고
+ *   캘린더에만 추가되는 기록으로 저장 [Optional, 기본값: false]
+ *
+ * Example usage:
+ * <CreatePostPage calendarOnly />
  */
-function CreatePostPage() {
+function CreatePostPage({ calendarOnly = false }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [previewUrl, setPreviewUrl] = useState('');
@@ -87,8 +92,9 @@ function CreatePostPage() {
         placeName,
         placeUrl: extractUrl(placeUrl),
         isCutout,
+        isCalendarOnly: calendarOnly,
       });
-      navigate(`/post/${post.id}`);
+      navigate(calendarOnly ? '/mypage' : `/post/${post.id}`);
     } catch (submitError) {
       console.error('게시물 저장 실패:', submitError);
       setError('게시물을 저장하지 못했어요. 다시 시도해주세요.');
@@ -99,8 +105,13 @@ function CreatePostPage() {
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Typography component="h1" sx={{ fontSize: { xs: '1.5rem', md: '1.75rem' }, fontWeight: 700, mb: 2 }}>
-        오늘의 기록
+        {calendarOnly ? '캘린더에 기록 추가' : '오늘의 기록'}
       </Typography>
+      {calendarOnly && (
+        <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 2 }}>
+          게시물로 올라가지 않고 내 캘린더에만 기록돼요.
+        </Typography>
+      )}
 
       {error && (
         <Alert severity="warning" sx={{ mb: 2 }}>
@@ -200,7 +211,13 @@ function CreatePostPage() {
           disabled={!processedBlob || processing || submitting}
           fullWidth
         >
-          {submitting ? '게시 중...' : '게시하기'}
+          {submitting
+            ? calendarOnly
+              ? '추가하는 중...'
+              : '게시 중...'
+            : calendarOnly
+              ? '캘린더에 추가하기'
+              : '게시하기'}
         </Button>
       </Stack>
     </Box>

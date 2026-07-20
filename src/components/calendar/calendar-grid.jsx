@@ -4,6 +4,10 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import { getMonthMatrix, WEEKDAY_LABELS } from '../../utils/calendar';
@@ -22,6 +26,7 @@ function CalendarGrid({ posts }) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
+  const [previewPost, setPreviewPost] = useState(null);
 
   const postsByDate = useMemo(() => {
     const map = new Map();
@@ -123,7 +128,24 @@ function CalendarGrid({ posts }) {
 
               return (
                 <Box key={dateKey} sx={{ aspectRatio: '1 / 1' }}>
-                  {post ? (
+                  {post && post.is_calendar_only ? (
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={() => setPreviewPost(post)}
+                      sx={{
+                        display: 'block',
+                        width: '100%',
+                        height: '100%',
+                        p: 0,
+                        border: 0,
+                        bgcolor: 'transparent',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {cellContent}
+                    </Box>
+                  ) : post ? (
                     <Box
                       component={RouterLink}
                       to={`/post/${post.id}`}
@@ -141,6 +163,41 @@ function CalendarGrid({ posts }) {
           </Box>
         ))}
       </Stack>
+
+      <Dialog open={Boolean(previewPost)} onClose={() => setPreviewPost(null)} maxWidth="xs" fullWidth>
+        {previewPost && (
+          <>
+            <DialogContent sx={{ p: 0 }}>
+              <Box
+                component="img"
+                src={previewPost.image_url}
+                alt=""
+                sx={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'contain', display: 'block', bgcolor: 'background.default' }}
+              />
+              <Stack spacing={0.5} sx={{ p: 2 }}>
+                {previewPost.place_name && (
+                  <Typography
+                    noWrap
+                    sx={{ fontSize: '0.85rem', fontWeight: 600 }}
+                  >
+                    {previewPost.place_name}
+                  </Typography>
+                )}
+                {previewPost.caption && (
+                  <Typography noWrap sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+                    {previewPost.caption}
+                  </Typography>
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setPreviewPost(null)} fullWidth>
+                닫기
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 }

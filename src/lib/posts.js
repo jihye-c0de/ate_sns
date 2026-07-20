@@ -6,13 +6,18 @@ export async function fetchFeed() {
   const { data, error } = await supabase
     .from('ate_posts')
     .select(POST_SELECT)
+    .eq('is_calendar_only', false)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data;
 }
 
 export async function fetchExplorePosts({ category } = {}) {
-  let query = supabase.from('ate_posts').select(POST_SELECT).order('created_at', { ascending: false });
+  let query = supabase
+    .from('ate_posts')
+    .select(POST_SELECT)
+    .eq('is_calendar_only', false)
+    .order('created_at', { ascending: false });
   if (category) query = query.eq('category', category);
   const { data, error } = await query;
   if (error) throw error;
@@ -48,6 +53,7 @@ export async function createPost({
   placeName,
   placeUrl,
   isCutout,
+  isCalendarOnly,
 }) {
   const { data, error } = await supabase
     .from('ate_posts')
@@ -60,6 +66,7 @@ export async function createPost({
       place_name: placeName || null,
       place_url: placeUrl || null,
       is_cutout: Boolean(isCutout),
+      is_calendar_only: Boolean(isCalendarOnly),
     })
     .select(POST_SELECT)
     .single();

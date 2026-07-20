@@ -31,6 +31,7 @@ function BottomNav() {
   const navigate = useNavigate();
 
   const currentValue = useMemo(() => {
+    if (location.pathname.startsWith('/create')) return '/create';
     const match = NAV_ITEMS.find((item) => item.value === location.pathname);
     return match ? match.value : false;
   }, [location.pathname]);
