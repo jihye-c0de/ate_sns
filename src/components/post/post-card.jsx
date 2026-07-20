@@ -27,6 +27,7 @@ import { deletePost, updatePostCaption } from '../../lib/posts';
 import { isPostLiked, isPostSaved, likePost, savePost, unlikePost, unsavePost } from '../../lib/social';
 import { addComment } from '../../lib/comments';
 import { formatRelativeDate } from '../../utils/date';
+import { extractUrl } from '../../utils/url';
 import CommentList from './comment-list';
 
 /**
@@ -166,7 +167,12 @@ function PostCard({ post, isDetail = false, feedPostIds, onDeleted }) {
             <Stack direction="row" spacing={0.3} alignItems="center">
               <PlaceRoundedIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
               {post.place_url ? (
-                <Link href={post.place_url} target="_blank" rel="noopener noreferrer" sx={{ fontSize: '0.75rem' }}>
+                <Link
+                  href={extractUrl(post.place_url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ fontSize: '0.75rem' }}
+                >
                   {post.place_name}
                 </Link>
               ) : (

@@ -14,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import { createPost, uploadPostImage } from '../lib/posts';
 import { withTimeout } from '../utils/with-timeout';
 import { trimTransparentPadding } from '../utils/trim-transparent';
+import { extractUrl } from '../utils/url';
 
 const BACKGROUND_REMOVAL_TIMEOUT_MS = 20000;
 
@@ -80,7 +81,7 @@ function CreatePostPage() {
         imageUrl,
         category,
         placeName,
-        placeUrl,
+        placeUrl: extractUrl(placeUrl),
         isCutout,
       });
       navigate(`/post/${post.id}`);

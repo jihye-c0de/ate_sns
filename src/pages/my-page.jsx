@@ -280,7 +280,7 @@ function MyPage() {
                   display: 'block',
                   width: '100%',
                   aspectRatio: '1 / 1',
-                  bgcolor: 'background.paper',
+                  bgcolor: post.is_cutout ? 'transparent' : 'background.paper',
                   overflow: 'hidden',
                 }}
               >
@@ -288,7 +288,12 @@ function MyPage() {
                   component="img"
                   src={post.image_url}
                   alt=""
-                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: post.is_cutout ? 'contain' : 'cover',
+                    p: post.is_cutout ? 0.5 : 0,
+                  }}
                 />
               </Box>
             </Grid>
