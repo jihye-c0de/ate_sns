@@ -140,7 +140,6 @@ function CreatePostPage() {
           component="input"
           type="file"
           accept="image/*"
-          capture="environment"
           onChange={handleFileChange}
           sx={{
             position: 'absolute',
