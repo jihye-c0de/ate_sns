@@ -13,6 +13,7 @@ import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import { useAuth } from '../context/AuthContext';
 import { createPost, uploadPostImage } from '../lib/posts';
 import { withTimeout } from '../utils/with-timeout';
+import { trimTransparentPadding } from '../utils/trim-transparent';
 
 const BACKGROUND_REMOVAL_TIMEOUT_MS = 20000;
 
@@ -43,7 +44,8 @@ function CreatePostPage() {
     try {
       const removeImageBackground = async () => {
         const { removeBackground } = await import('@imgly/background-removal');
-        return removeBackground(file);
+        const cutout = await removeBackground(file);
+        return trimTransparentPadding(cutout);
       };
       const blob = await withTimeout(removeImageBackground(), BACKGROUND_REMOVAL_TIMEOUT_MS);
       setProcessedBlob(blob);

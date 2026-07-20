@@ -86,7 +86,7 @@ function PostCard({ post, isDetail = false }) {
   };
 
   return (
-    <Card sx={{ mb: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+    <Card sx={{ mb: 3, borderRadius: 0, border: '1px solid', borderColor: 'divider' }}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 2, pt: 2 }}>
         <Avatar
           component={RouterLink}

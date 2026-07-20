@@ -58,7 +58,7 @@ function CalendarGrid({ posts }) {
         bgcolor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider',
-        borderRadius: 4,
+        borderRadius: 0,
         p: { xs: 1.5, md: 2 },
       }}
     >
@@ -102,7 +102,7 @@ function CalendarGrid({ posts }) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderRadius: 2,
+                    borderRadius: 0,
                     bgcolor: post ? 'background.default' : 'transparent',
                     overflow: 'hidden',
                     position: 'relative',
