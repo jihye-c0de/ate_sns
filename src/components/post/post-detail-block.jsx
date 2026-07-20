@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -21,7 +21,7 @@ import { deletePost, fetchPostById, updatePostCaption } from '../../lib/posts';
  * Example usage:
  * <PostDetailBlock postId={5} />
  */
-const PostDetailBlock = forwardRef(function PostDetailBlock({ postId, onDeleted }, ref) {
+function PostDetailBlock({ postId, onDeleted }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
@@ -78,7 +78,7 @@ const PostDetailBlock = forwardRef(function PostDetailBlock({ postId, onDeleted 
   }
 
   return (
-    <Box ref={ref}>
+    <Box>
       <PostCard post={post} isDetail />
 
       {isOwner && (
@@ -119,6 +119,6 @@ const PostDetailBlock = forwardRef(function PostDetailBlock({ postId, onDeleted 
       <Divider sx={{ mt: 3, mb: 3 }} />
     </Box>
   );
-});
+}
 
 export default PostDetailBlock;
