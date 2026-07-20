@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -23,8 +23,8 @@ import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import { useAuth } from '../../context/AuthContext';
-import { adjustPostLikes, deletePost, updatePostCaption } from '../../lib/posts';
-import { isPostSaved, savePost, unsavePost } from '../../lib/social';
+import { deletePost, updatePostCaption } from '../../lib/posts';
+import { isPostLiked, isPostSaved, likePost, savePost, unlikePost, unsavePost } from '../../lib/social';
 import { addComment } from '../../lib/comments';
 import { formatRelativeDate } from '../../utils/date';
 
@@ -49,7 +49,6 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [savedChecked, setSavedChecked] = useState(false);
   const [commentInputOpen, setCommentInputOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
@@ -57,39 +56,54 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
   const [editing, setEditing] = useState(false);
   const [caption, setCaption] = useState(post.caption || '');
 
-  const checkSaved = async () => {
-    if (!user || savedChecked) return;
-    const result = await isPostSaved(user.id, post.id);
-    setSaved(result);
-    setSavedChecked(true);
-  };
+  useEffect(() => {
+    if (!user) {
+      setLiked(false);
+      setSaved(false);
+      return;
+    }
+    let cancelled = false;
+    Promise.all([isPostLiked(user.id, post.id), isPostSaved(user.id, post.id)]).then(
+      ([likedResult, savedResult]) => {
+        if (cancelled) return;
+        setLiked(likedResult);
+        setSaved(savedResult);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [user, post.id]);
 
   const handleLike = async () => {
     if (!user) return;
-    const delta = liked ? -1 : 1;
-    setLiked(!liked);
-    setLikesCount((count) => count + delta);
+    const nextLiked = !liked;
+    setLiked(nextLiked);
+    setLikesCount((count) => count + (nextLiked ? 1 : -1));
     try {
-      await adjustPostLikes(post.id, delta);
+      if (nextLiked) {
+        await likePost(user.id, post.id);
+      } else {
+        await unlikePost(user.id, post.id);
+      }
     } catch {
-      setLiked(liked);
-      setLikesCount((count) => count - delta);
+      setLiked(!nextLiked);
+      setLikesCount((count) => count + (nextLiked ? -1 : 1));
     }
   };
 
   const handleSave = async () => {
     if (!user) return;
-    await checkSaved();
+    const nextSaved = !saved;
+    setSaved(nextSaved);
     try {
-      if (saved) {
-        await unsavePost(user.id, post.id);
-        setSaved(false);
-      } else {
+      if (nextSaved) {
         await savePost(user.id, post.id);
-        setSaved(true);
+      } else {
+        await unsavePost(user.id, post.id);
       }
     } catch {
-      /* 저장 실패 시 상태 유지 */
+      setSaved(!nextSaved);
     }
   };
 
@@ -200,7 +214,7 @@ function PostCard({ post, isDetail = false, feedPostIds, onCommentAdded, onDelet
         <IconButton onClick={() => setCommentInputOpen((open) => !open)} disabled={!user} size="small">
           <ChatBubbleOutlineRoundedIcon />
         </IconButton>
-        <IconButton onClick={handleSave} onFocus={checkSaved} onMouseEnter={checkSaved} disabled={!user} size="small">
+        <IconButton onClick={handleSave} disabled={!user} size="small">
           {saved ? <BookmarkRoundedIcon /> : <BookmarkBorderRoundedIcon />}
         </IconButton>
         <IconButton onClick={handleShare} size="small" sx={{ ml: 'auto' }}>

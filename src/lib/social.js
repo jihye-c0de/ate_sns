@@ -87,6 +87,31 @@ export async function unsavePost(userId, postId) {
   if (error) throw error;
 }
 
+export async function isPostLiked(userId, postId) {
+  const { data, error } = await supabase
+    .from('ate_likes')
+    .select('post_id')
+    .eq('user_id', userId)
+    .eq('post_id', postId)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
+
+export async function likePost(userId, postId) {
+  const { error } = await supabase.from('ate_likes').insert({ user_id: userId, post_id: postId });
+  if (error) throw error;
+}
+
+export async function unlikePost(userId, postId) {
+  const { error } = await supabase
+    .from('ate_likes')
+    .delete()
+    .eq('user_id', userId)
+    .eq('post_id', postId);
+  if (error) throw error;
+}
+
 export async function fetchSavedPosts(userId) {
   const { data, error } = await supabase
     .from('ate_saved_posts')

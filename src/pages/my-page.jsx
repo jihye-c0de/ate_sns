@@ -276,9 +276,19 @@ function MyPage() {
                 component={RouterLink}
                 to={`/post/${post.id}`}
                 state={{ postIds: posts.map((p) => p.id) }}
-                sx={{ display: 'block', width: '100%', aspectRatio: '1 / 1', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
+                sx={{
+                  display: 'block',
+                  width: '100%',
+                  aspectRatio: '1 / 1',
+                  bgcolor: post.is_cutout ? 'transparent' : 'background.paper',
+                }}
               >
-                <Box component="img" src={post.image_url} alt="" sx={{ width: '100%', height: '100%', objectFit: 'contain', p: 1 }} />
+                <Box
+                  component="img"
+                  src={post.image_url}
+                  alt=""
+                  sx={{ width: '100%', height: '100%', objectFit: 'contain', p: post.is_cutout ? 0 : 1 }}
+                />
               </Box>
             </Grid>
           ))}

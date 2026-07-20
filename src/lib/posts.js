@@ -67,15 +67,6 @@ export async function deletePost(postId) {
   if (error) throw error;
 }
 
-export async function adjustPostLikes(postId, delta) {
-  const { data, error } = await supabase.rpc('ate_adjust_post_likes', {
-    p_post_id: postId,
-    p_delta: delta,
-  });
-  if (error) throw error;
-  return data;
-}
-
 export async function uploadPostImage(userId, blob) {
   const fileName = `${userId}/${Date.now()}.png`;
   const { error: uploadError } = await supabase.storage
