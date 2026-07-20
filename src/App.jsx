@@ -15,8 +15,18 @@ import NotificationsPage from './pages/notifications-page';
 
 function AppLayout({ children }) {
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container maxWidth="sm" disableGutters sx={{ px: { xs: 2, md: 3 }, pb: { xs: 10, md: 11 }, pt: { xs: 2, md: 3 } }}>
+    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: '#ffffff' }}>
+      <Container
+        maxWidth="sm"
+        disableGutters
+        sx={{
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+          px: { xs: 2, md: 3 },
+          pb: { xs: 10, md: 11 },
+          pt: { xs: 2, md: 3 },
+        }}
+      >
         {children}
       </Container>
       <BottomNav />
