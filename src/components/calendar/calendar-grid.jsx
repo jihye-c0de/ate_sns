@@ -63,13 +63,13 @@ function CalendarGrid({ posts }) {
       }}
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-        <IconButton onClick={goPrevMonth} size="small">
+        <IconButton onClick={goPrevMonth} size="small" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <ChevronLeftRoundedIcon />
         </IconButton>
-        <Typography sx={{ fontWeight: 700 }}>
-          {year}년 {month + 1}월
+        <Typography sx={{ fontWeight: 700, lineHeight: 1, display: 'flex', alignItems: 'center' }}>
+          {year}.{String(month + 1).padStart(2, '0')}
         </Typography>
-        <IconButton onClick={goNextMonth} size="small">
+        <IconButton onClick={goNextMonth} size="small" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <ChevronRightRoundedIcon />
         </IconButton>
       </Stack>
